@@ -1,7 +1,16 @@
 package controllers
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"github.com/astaxie/beego"
+	"github.com/godfather1103/packageRepo/models"
+	"github.com/godfather1103/packageRepo/util"
+	"io"
+	"log"
+	"os"
+	"strings"
 )
 
 // UploadController operations for Upload
@@ -9,72 +18,104 @@ type UploadController struct {
 	beego.Controller
 }
 
-// URLMapping ...
-func (c *UploadController) URLMapping() {
-	c.Mapping("Post", c.Post)
-	c.Mapping("GetOne", c.GetOne)
-	c.Mapping("GetAll", c.GetAll)
-	c.Mapping("Put", c.Put)
-	c.Mapping("Delete", c.Delete)
-}
-
-// Post ...
-// @Title Create
-// @Description create Upload
-// @Param	body		body 	models.Upload	true		"body for Upload content"
-// @Success 201 {object} models.Upload
-// @Failure 403 body is empty
-// @router / [post]
 func (c *UploadController) Post() {
+	formFile, header, error := c.GetFile("file")
+	if error != nil {
+		log.Printf("文件获取失败：%s\n", error)
+		resp := map[string]interface{}{
+			"CODE": -1,
+			"MSG":  "文件获取失败：" + error.Error(),
+			"DATA": new(interface{}),
+		}
+		data, _ := json.Marshal(resp)
+		c.Data["MSG"] = string(data)
+		c.TplName = "toJson.tpl"
+		return
+	}
+	var uploadFileInfo = new(models.UploadFileInfo)
+	var groupId = c.GetString("groupId")
+	uploadFileInfo.GroupId = groupId
+	var artifactId = c.GetString("artifactId")
+	uploadFileInfo.ArtifactId = artifactId
+	var version = c.GetString("version")
+	uploadFileInfo.Version = version
+	var fileExt = c.GetString("fileExt")
+	if util.CheckStrIsEmpty(fileExt) {
+		fileExt = util.GetFileExt(header.Filename)
+	}
+	uploadFileInfo.FileExt = fileExt
+	flag, info := models.CheckUploadFileInfo(uploadFileInfo)
+	if !flag {
+		log.Println(info)
+		resp := map[string]interface{}{
+			"CODE": -1,
+			"MSG":  info,
+			"DATA": new(interface{}),
+		}
+		data, _ := json.Marshal(resp)
+		c.Data["MSG"] = string(data)
+		c.TplName = "toJson.tpl"
+		return
+	}
 
-}
-
-// GetOne ...
-// @Title GetOne
-// @Description get Upload by id
-// @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.Upload
-// @Failure 403 :id is empty
-// @router /:id [get]
-func (c *UploadController) GetOne() {
-
-}
-
-// GetAll ...
-// @Title GetAll
-// @Description get Upload
-// @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
-// @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
-// @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
-// @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
-// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
-// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.Upload
-// @Failure 403
-// @router / [get]
-func (c *UploadController) GetAll() {
-
-}
-
-// Put ...
-// @Title Put
-// @Description update the Upload
-// @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.Upload	true		"body for Upload content"
-// @Success 200 {object} models.Upload
-// @Failure 403 :id is not int
-// @router /:id [put]
-func (c *UploadController) Put() {
-
-}
-
-// Delete ...
-// @Title Delete
-// @Description delete the Upload
-// @Param	id		path 	string	true		"The id you want to delete"
-// @Success 200 {string} delete success!
-// @Failure 403 id is empty
-// @router /:id [delete]
-func (c *UploadController) Delete() {
-
+	var descRootDir = util.GetOrDefault("uploadDir", "/repo")
+	var descDir = descRootDir + "/" + strings.Replace(groupId, ".", "/", len(strings.Split(groupId, ".")))
+	descDir += "/" + artifactId + "/" + version + "/"
+	error = util.PathMkdir(descDir)
+	if error != nil {
+		log.Printf("创建路径失败：%s\n", error)
+		resp := map[string]interface{}{
+			"CODE": -1,
+			"MSG":  "创建路径失败：" + error.Error(),
+			"DATA": new(interface{}),
+		}
+		data, _ := json.Marshal(resp)
+		c.Data["MSG"] = string(data)
+		c.TplName = "toJson.tpl"
+		return
+	}
+	uploadFileInfo.FileName = artifactId + "-" + version + "." + fileExt
+	defer formFile.Close()
+	destFile, error := os.Create(descDir + uploadFileInfo.FileName)
+	if error != nil {
+		log.Printf("创建文件失败：%s\n", error)
+		resp := map[string]interface{}{
+			"CODE": -1,
+			"MSG":  "创建文件失败：" + error.Error(),
+			"DATA": new(interface{}),
+		}
+		data, _ := json.Marshal(resp)
+		c.Data["MSG"] = string(data)
+		c.TplName = "toJson.tpl"
+		return
+	}
+	defer destFile.Close()
+	// 读取表单文件，写入保存文件
+	_, error = io.Copy(destFile, formFile)
+	if error != nil {
+		log.Printf("文件写入失败：%s\n", error)
+		resp := map[string]interface{}{
+			"CODE": -1,
+			"MSG":  "文件写入失败：" + error.Error(),
+			"DATA": new(interface{}),
+		}
+		data, _ := json.Marshal(resp)
+		c.Data["MSG"] = string(data)
+		c.TplName = "toJson.tpl"
+		return
+	}
+	md5File, _ := os.Open(descDir + uploadFileInfo.FileName)
+	md5h := md5.New()
+	defer md5File.Close()
+	io.Copy(md5h, md5File)
+	uploadFileInfo.FileMD5 = hex.EncodeToString(md5h.Sum([]byte("")))
+	log.Println(uploadFileInfo.FileMD5)
+	resp := map[string]interface{}{
+		"CODE": 200,
+		"MSG":  "上传成功！",
+		"DATA": uploadFileInfo,
+	}
+	data, _ := json.Marshal(resp)
+	c.Data["MSG"] = string(data)
+	c.TplName = "toJson.tpl"
 }
