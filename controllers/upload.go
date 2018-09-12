@@ -109,7 +109,7 @@ func (c *UploadController) Post() {
 	defer md5File.Close()
 	io.Copy(md5h, md5File)
 	uploadFileInfo.FileMD5 = hex.EncodeToString(md5h.Sum([]byte("")))
-	log.Println(uploadFileInfo.FileMD5)
+	models.AddUploadFileInfo(uploadFileInfo)
 	resp := map[string]interface{}{
 		"CODE": 200,
 		"MSG":  "上传成功！",
