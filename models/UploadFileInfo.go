@@ -30,18 +30,42 @@ func AddUploadFileInfo(vo *UploadFileInfo) *UploadFileInfo {
 		vo.Id = item.Id
 		_, error := o.Update(vo)
 		if error == nil {
-			return vo
+			artifactId, error := AddPathInfo(vo.GroupId, vo.ArtifactId)
+			if error == nil {
+				_, error = AddVersionInfo(vo.Version, artifactId, vo.Id)
+				if error == nil {
+					return vo
+				} else {
+					beego.Error("更新版本数据失败，error=" + error.Error())
+					return nil
+				}
+			} else {
+				beego.Error("更新路径数据失败，error=" + error.Error())
+				return nil
+			}
 		} else {
-			beego.Error("更新数据失败，error=" + error.Error())
+			beego.Error("更新文件数据失败，error=" + error.Error())
 			return nil
 		}
 	}
 	id, error := o.Insert(vo)
 	if error == nil {
 		vo.Id = id
-		return vo
+		artifactId, error := AddPathInfo(vo.GroupId, vo.ArtifactId)
+		if error == nil {
+			_, error = AddVersionInfo(vo.Version, artifactId, vo.Id)
+			if error == nil {
+				return vo
+			} else {
+				beego.Error("更新版本数据失败，error=" + error.Error())
+				return nil
+			}
+		} else {
+			beego.Error("更新路径数据失败，error=" + error.Error())
+			return nil
+		}
 	} else {
-		beego.Error("新建数据失败，error=" + error.Error())
+		beego.Error("新建文件数据失败，error=" + error.Error())
 		return nil
 	}
 }
