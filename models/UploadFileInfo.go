@@ -1,19 +1,24 @@
 package models
 
 import (
+	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/godfather1103/packageRepo/util"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type UploadFileInfo struct {
-	Id         int64
-	GroupId    string `orm:size(1000)`
-	ArtifactId string `orm:size(200)`
-	Version    string `orm:size(100)`
-	FileExt    string `orm:size(20)`
-	FileName   string `orm:size(400)`
-	FileMD5    string `orm:size(40)`
+	Id              int64
+	GroupId         string `orm:size(1000)`
+	ArtifactId      string `orm:size(200)`
+	Version         string `orm:size(100)`
+	FileExt         string `orm:size(20)`
+	FileName        string `orm:size(400)`
+	FileMD5         string `orm:size(40)`
+	LastVersionTime time.Time
 }
 
 /**
@@ -23,9 +28,25 @@ func init() {
 	orm.RegisterModel(new(UploadFileInfo))
 }
 
+func FindUploadFileInfoById(Id int64) (*UploadFileInfo, error) {
+	o := orm.NewOrm()
+	uploadFileInfos := make([]*UploadFileInfo, 0)
+	_, err := o.QueryTable("upload_file_info").Filter("id", Id).Limit(1).All(&uploadFileInfos)
+	if err == nil && len(uploadFileInfos) > 0 {
+		return uploadFileInfos[0], nil
+	} else {
+		if err != nil {
+			return nil, err
+		} else {
+			return nil, errors.New("未查询到ID=" + strconv.FormatInt(Id, 10) + "的文件")
+		}
+	}
+}
+
 func AddUploadFileInfo(vo *UploadFileInfo) *UploadFileInfo {
 	o := orm.NewOrm()
-	item, error := FindUploadFileInfoByGA(vo.GroupId, vo.ArtifactId)
+	item, error := FindUploadFileInfoByGAV(vo.GroupId, vo.ArtifactId, vo.Version)
+	vo.LastVersionTime = time.Now()
 	if error == nil && item != nil {
 		vo.Id = item.Id
 		_, error := o.Update(vo)
@@ -70,14 +91,19 @@ func AddUploadFileInfo(vo *UploadFileInfo) *UploadFileInfo {
 	}
 }
 
-func FindUploadFileInfoByGA(groupId string, artifactId string) (*UploadFileInfo, error) {
+func FindUploadFileInfoByGAV(groupId string, artifactId string, version string) (*UploadFileInfo, error) {
 	o := orm.NewOrm()
 	uploadFileInfos := make([]*UploadFileInfo, 0)
-	_, err := o.QueryTable("upload_file_info").Filter("groupId", groupId).Filter("artifactId", artifactId).Limit(1).All(&uploadFileInfos)
-	if len(uploadFileInfos) > 0 {
-		return uploadFileInfos[0], err
-	} else {
+	_, err := o.QueryTable("upload_file_info").Filter("groupId", groupId).Filter("artifactId", artifactId).Filter("version", version).Limit(1).All(&uploadFileInfos)
+
+	if err != nil {
 		return nil, err
+	} else {
+		if len(uploadFileInfos) > 0 {
+			return uploadFileInfos[0], nil
+		} else {
+			return nil, errors.New("未查询到相关的上传文件")
+		}
 	}
 }
 
@@ -93,5 +119,26 @@ func CheckUploadFileInfo(fileInfo *UploadFileInfo) (bool, string) {
 	} else {
 		return true, ""
 	}
+}
 
+func GetFileDownloadUrl(fileInfo *UploadFileInfo, useStreamUrl string) (string, error) {
+	flag, msg := CheckUploadFileInfo(fileInfo)
+	if flag {
+		var url string
+		if useStreamUrl != "1" {
+			var groupId = fileInfo.GroupId
+			var version = fileInfo.Version
+			var fileName = fileInfo.FileName
+			url = beego.AppConfig.String("webPrefixForUpload")
+			url += "/" + strings.Replace(groupId, ".", "/", len(strings.Split(groupId, ".")))
+			url += "/" + strings.Replace(version, ".", "/", len(strings.Split(version, ".")))
+			url += "/" + fileName
+		} else {
+			url = beego.AppConfig.String("webStreamPrefixForUpload")
+			url += "?FileId=" + strconv.FormatInt(fileInfo.Id, 10)
+		}
+		return url, nil
+	} else {
+		return "", errors.New(msg)
+	}
 }

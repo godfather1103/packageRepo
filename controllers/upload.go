@@ -60,7 +60,7 @@ func (c *UploadController) Post() {
 
 	var descRootDir = util.GetOrDefault("uploadDir", "/repo")
 	var descDir = descRootDir + "/" + strings.Replace(groupId, ".", "/", len(strings.Split(groupId, ".")))
-	descDir += "/" + artifactId + "/" + version + "/"
+	descDir += "/" + strings.Replace(artifactId, ".", "/", len(strings.Split(artifactId, "."))) + "/" + version + "/"
 	error = util.PathMkdir(descDir)
 	if error != nil {
 		log.Printf("创建路径失败：%s\n", error)

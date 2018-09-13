@@ -46,21 +46,25 @@ func AddPathInfo(groupId string, artifactId string) (int64, error) {
 		}
 
 		//保存artifactId
-		vo, _ := FindPathInfo(artifactId, parentId, int64(2))
-		if vo == nil {
-			vo = &PathInfo{
-				PathName:     artifactId,
-				PathType:     int64(2),
-				ParentPathId: parentId,
-			}
-			id, err := o.Insert(vo)
-			if err == nil {
-				parentId = id
+		paths = strings.Split(artifactId, ".")
+
+		for i := 0; i < len(paths); i++ {
+			vo, _ := FindPathInfo(paths[i], parentId, int64(2))
+			if vo == nil {
+				vo = &PathInfo{
+					PathName:     paths[i],
+					PathType:     int64(2),
+					ParentPathId: parentId,
+				}
+				id, err := o.Insert(vo)
+				if err == nil {
+					parentId = id
+				} else {
+					return int64(0), err
+				}
 			} else {
-				return int64(0), err
+				parentId = vo.Id
 			}
-		} else {
-			parentId = vo.Id
 		}
 		return parentId, nil
 	}
