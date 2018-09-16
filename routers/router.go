@@ -10,4 +10,5 @@ func init() {
 	beego.Router("/uploadFile", &controllers.UploadController{})
 	beego.Router("/getDownloadUrl", &controllers.DownloadController{})
 	beego.Router("/getFileStream", &controllers.DownloadController{}, "*:GetFileStream")
+	beego.Router("/getFileList", &controllers.DownloadController{}, "*:GetPathFileList")
 }

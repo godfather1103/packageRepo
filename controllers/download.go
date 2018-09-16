@@ -15,6 +15,113 @@ type DownloadController struct {
 	beego.Controller
 }
 
+func (c *DownloadController) GetPathFileList() {
+	var pathFileId, err = c.GetInt64("PathFileId", int64(0))
+	idType, err := c.GetInt64("IdType", int64(0))
+	var returnType = c.GetString("returnType", "html")
+	var resp map[string]interface{}
+	var groupIdPaths = make([]*models.PathInfo, 0)
+	var versionPaths = make([]*models.VersionInfo, 0)
+	var fileInfos = make([]map[string]interface{}, 0)
+	var error error
+	if err == nil {
+		if idType == 0 {
+			// GroupId
+			groupIdPaths, error = models.FindPathInfos(pathFileId)
+			if error != nil {
+				log.Printf("查询路径失败：%s\n", error)
+				resp = map[string]interface{}{
+					"CODE": -1,
+					"MSG":  "查询路径失败：" + error.Error(),
+					"DATA": new(interface{}),
+				}
+				data, _ := json.Marshal(resp)
+				c.Data["MSG"] = string(data)
+				c.TplName = "toJson.tpl"
+				return
+			}
+		} else if idType == 1 {
+			// ArtifactId
+			versionPaths, error = models.FindVersonInfos(pathFileId)
+			if error != nil {
+				log.Printf("查询版本失败：%s\n", error)
+				resp = map[string]interface{}{
+					"CODE": -1,
+					"MSG":  "查询版本失败：" + error.Error(),
+					"DATA": new(interface{}),
+				}
+				data, _ := json.Marshal(resp)
+				c.Data["MSG"] = string(data)
+				c.TplName = "toJson.tpl"
+				return
+			}
+		} else if idType == 2 {
+			// Version
+			fileInfos, error = models.FindUploadFileInfoByVersion(pathFileId)
+			if error != nil {
+				log.Printf("查询文件失败：%s\n", error)
+				resp = map[string]interface{}{
+					"CODE": -1,
+					"MSG":  "查询文件失败：" + error.Error(),
+					"DATA": new(interface{}),
+				}
+				data, _ := json.Marshal(resp)
+				c.Data["MSG"] = string(data)
+				c.TplName = "toJson.tpl"
+				return
+			}
+		} else {
+			log.Printf("传入的数据异常")
+			resp = map[string]interface{}{
+				"CODE": -1,
+				"MSG":  "传入的数据异常",
+				"DATA": new(interface{}),
+			}
+			data, _ := json.Marshal(resp)
+			c.Data["MSG"] = string(data)
+			c.TplName = "toJson.tpl"
+			return
+		}
+		var DATA = make(map[string]interface{}, 4)
+		DATA["GROUPIDPATHS"] = groupIdPaths
+		DATA["VERSIONPATHS"] = versionPaths
+		DATA["FILEINFOS"] = fileInfos
+		DATA["TITLE"] = models.GetWebTitle(pathFileId, idType)
+		var breadCrumb = models.GetBreadcrumb(pathFileId, idType)
+		DATA["BREADCRUMB"] = breadCrumb
+		if len(breadCrumb) > 1 {
+			DATA["PARENTPATH"] = breadCrumb[len(breadCrumb)-2]
+		}
+		resp = map[string]interface{}{
+			"CODE": 200,
+			"MSG":  "数据获取成功！",
+			"DATA": DATA,
+		}
+	} else {
+		resp = map[string]interface{}{
+			"CODE": -1,
+			"MSG":  "未能获得相关文件：" + err.Error(),
+			"DATA": new(interface{}),
+		}
+	}
+	data, _ := json.Marshal(resp)
+	c.Data["MSG"] = string(data)
+	if returnType == "html" {
+		c.Data["GROUPIDPATHS"] = groupIdPaths
+		c.Data["VERSIONPATHS"] = versionPaths
+		c.Data["FILEINFOS"] = fileInfos
+		c.Data["TITLE"] = models.GetWebTitle(pathFileId, idType)
+		var breadCrumb = models.GetBreadcrumb(pathFileId, idType)
+		c.Data["BREADCRUMB"] = breadCrumb
+		if len(breadCrumb) > 1 {
+			c.Data["PARENTPATH"] = breadCrumb[len(breadCrumb)-2]
+		}
+		c.TplName = "fileList.tpl"
+	} else {
+		c.TplName = "toJson.tpl"
+	}
+}
+
 func (c *DownloadController) GetFileStream() {
 	var fileId, err = c.GetInt64("FileId", int64(0))
 	var resp map[string]interface{}

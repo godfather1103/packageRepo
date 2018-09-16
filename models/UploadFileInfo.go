@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -43,7 +44,39 @@ func FindUploadFileInfoById(Id int64) (*UploadFileInfo, error) {
 	}
 }
 
-func AddUploadFileInfo(vo *UploadFileInfo) *UploadFileInfo {
+func FindUploadFileInfoByVersion(pathFileId int64) ([]map[string]interface{}, error) {
+	o := orm.NewOrm()
+	uploadFileInfos := make([]*UploadFileInfo, 0)
+
+	version := VersionInfo{Id: pathFileId}
+	err := o.Read(&version)
+	if err == orm.ErrNoRows {
+		return nil, errors.New("查询不到相关版本号")
+	} else if err == orm.ErrMissPK {
+		return nil, errors.New("查询不到相关版本号主键")
+	} else if err != nil {
+		return nil, err
+	}
+	num, err := o.QueryTable("upload_file_info").Filter("id", version.UploadFileInfoId).All(&uploadFileInfos)
+	if err == nil {
+		uploadFileInfosMap := make([]map[string]interface{}, num)
+		for i := int64(0); i < num; i++ {
+			var fileInfoMap = map[string]interface{}{}
+			fileInfo, _ := json.Marshal(uploadFileInfos[i])
+			json.Unmarshal(fileInfo, &fileInfoMap)
+			fileDownloadUrl, _ := GetFileDownloadUrl(uploadFileInfos[i], "1")
+			fileInfoMap["STREAMURL"] = fileDownloadUrl
+			fileDownloadUrl, _ = GetFileDownloadUrl(uploadFileInfos[i], "0")
+			fileInfoMap["WEBURL"] = fileDownloadUrl
+			uploadFileInfosMap[i] = fileInfoMap
+		}
+		return uploadFileInfosMap, nil
+	} else {
+		return nil, err
+	}
+}
+
+func AddUploadFileInfo(vo *UploadFileInfo) (*UploadFileInfo, error) {
 	o := orm.NewOrm()
 	item, error := FindUploadFileInfoByGAV(vo.GroupId, vo.ArtifactId, vo.Version)
 	vo.LastVersionTime = time.Now()
@@ -55,18 +88,18 @@ func AddUploadFileInfo(vo *UploadFileInfo) *UploadFileInfo {
 			if error == nil {
 				_, error = AddVersionInfo(vo.Version, artifactId, vo.Id)
 				if error == nil {
-					return vo
+					return vo, nil
 				} else {
 					beego.Error("更新版本数据失败，error=" + error.Error())
-					return nil
+					return nil, errors.New("更新版本数据失败，error=" + error.Error())
 				}
 			} else {
 				beego.Error("更新路径数据失败，error=" + error.Error())
-				return nil
+				return nil, errors.New("更新路径数据失败，error=" + error.Error())
 			}
 		} else {
 			beego.Error("更新文件数据失败，error=" + error.Error())
-			return nil
+			return nil, errors.New("更新文件数据失败，error=" + error.Error())
 		}
 	}
 	id, error := o.Insert(vo)
@@ -76,18 +109,18 @@ func AddUploadFileInfo(vo *UploadFileInfo) *UploadFileInfo {
 		if error == nil {
 			_, error = AddVersionInfo(vo.Version, artifactId, vo.Id)
 			if error == nil {
-				return vo
+				return vo, nil
 			} else {
 				beego.Error("更新版本数据失败，error=" + error.Error())
-				return nil
+				return nil, errors.New("更新版本数据失败，error=" + error.Error())
 			}
 		} else {
 			beego.Error("更新路径数据失败，error=" + error.Error())
-			return nil
+			return nil, errors.New("更新路径数据失败，error=" + error.Error())
 		}
 	} else {
 		beego.Error("新建文件数据失败，error=" + error.Error())
-		return nil
+		return nil, errors.New("新建文件数据失败，error=" + error.Error())
 	}
 }
 
@@ -127,11 +160,12 @@ func GetFileDownloadUrl(fileInfo *UploadFileInfo, useStreamUrl string) (string, 
 		var url string
 		if useStreamUrl != "1" {
 			var groupId = fileInfo.GroupId
+			var artifactId = fileInfo.ArtifactId
 			var version = fileInfo.Version
 			var fileName = fileInfo.FileName
 			url = beego.AppConfig.String("webPrefixForUpload")
 			url += "/" + strings.Replace(groupId, ".", "/", len(strings.Split(groupId, ".")))
-			url += "/" + strings.Replace(version, ".", "/", len(strings.Split(version, ".")))
+			url += "/" + artifactId + "/" + version
 			url += "/" + fileName
 		} else {
 			url = beego.AppConfig.String("webStreamPrefixForUpload")

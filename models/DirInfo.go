@@ -46,27 +46,38 @@ func AddPathInfo(groupId string, artifactId string) (int64, error) {
 		}
 
 		//保存artifactId
-		paths = strings.Split(artifactId, ".")
-
-		for i := 0; i < len(paths); i++ {
-			vo, _ := FindPathInfo(paths[i], parentId, int64(2))
-			if vo == nil {
-				vo = &PathInfo{
-					PathName:     paths[i],
-					PathType:     int64(2),
-					ParentPathId: parentId,
-				}
-				id, err := o.Insert(vo)
-				if err == nil {
-					parentId = id
-				} else {
-					return int64(0), err
-				}
-			} else {
-				parentId = vo.Id
+		vo, _ := FindPathInfo(artifactId, parentId, int64(2))
+		if vo == nil {
+			vo = &PathInfo{
+				PathName:     artifactId,
+				PathType:     int64(2),
+				ParentPathId: parentId,
 			}
+			id, err := o.Insert(vo)
+			if err == nil {
+				parentId = id
+			} else {
+				return int64(0), err
+			}
+		} else {
+			parentId = vo.Id
 		}
 		return parentId, nil
+	}
+}
+
+func FindPathInfoById(pathFileId int64) (PathInfo, error) {
+	o := orm.NewOrm()
+	var pathInfo = PathInfo{Id: pathFileId}
+	err := o.Read(&pathInfo)
+	if err == orm.ErrNoRows {
+		return PathInfo{}, errors.New("查询不到相关路径")
+	} else if err == orm.ErrMissPK {
+		return PathInfo{}, errors.New("查询不到相关路径主键")
+	} else if err != nil {
+		return PathInfo{}, err
+	} else {
+		return pathInfo, nil
 	}
 }
 
@@ -79,4 +90,11 @@ func FindPathInfo(pathName string, parentId int64, pathType int64) (*PathInfo, e
 	} else {
 		return nil, err
 	}
+}
+
+func FindPathInfos(pathFileId int64) ([]*PathInfo, error) {
+	o := orm.NewOrm()
+	pathInfo := make([]*PathInfo, 0)
+	_, err := o.QueryTable("path_info").Filter("parent_path_id", pathFileId).All(&pathInfo)
+	return pathInfo, err
 }

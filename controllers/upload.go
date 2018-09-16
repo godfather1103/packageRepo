@@ -60,7 +60,7 @@ func (c *UploadController) Post() {
 
 	var descRootDir = util.GetOrDefault("uploadDir", "/repo")
 	var descDir = descRootDir + "/" + strings.Replace(groupId, ".", "/", len(strings.Split(groupId, ".")))
-	descDir += "/" + strings.Replace(artifactId, ".", "/", len(strings.Split(artifactId, "."))) + "/" + version + "/"
+	descDir += "/" + artifactId + "/" + version + "/"
 	error = util.PathMkdir(descDir)
 	if error != nil {
 		log.Printf("创建路径失败：%s\n", error)
@@ -109,11 +109,30 @@ func (c *UploadController) Post() {
 	defer md5File.Close()
 	io.Copy(md5h, md5File)
 	uploadFileInfo.FileMD5 = hex.EncodeToString(md5h.Sum([]byte("")))
-	models.AddUploadFileInfo(uploadFileInfo)
+	uploadFileInfo, error = models.AddUploadFileInfo(uploadFileInfo)
+	if error != nil {
+		log.Printf("文件写入失败：%s\n", error)
+		resp := map[string]interface{}{
+			"CODE": -1,
+			"MSG":  error.Error(),
+			"DATA": new(interface{}),
+		}
+		data, _ := json.Marshal(resp)
+		c.Data["MSG"] = string(data)
+		c.TplName = "toJson.tpl"
+		return
+	}
+	var fileInfoMap = map[string]interface{}{}
+	fileInfo, _ := json.Marshal(uploadFileInfo)
+	json.Unmarshal(fileInfo, &fileInfoMap)
+	fileDownloadUrl, _ := models.GetFileDownloadUrl(uploadFileInfo, "1")
+	fileInfoMap["STREAMURL"] = fileDownloadUrl
+	fileDownloadUrl, _ = models.GetFileDownloadUrl(uploadFileInfo, "0")
+	fileInfoMap["WEBURL"] = fileDownloadUrl
 	resp := map[string]interface{}{
 		"CODE": 200,
 		"MSG":  "上传成功！",
-		"DATA": uploadFileInfo,
+		"DATA": fileInfoMap,
 	}
 	data, _ := json.Marshal(resp)
 	c.Data["MSG"] = string(data)
