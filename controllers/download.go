@@ -91,6 +91,12 @@ func (c *DownloadController) GetPathFileList() {
 		DATA["BREADCRUMB"] = breadCrumb
 		if len(breadCrumb) > 1 {
 			DATA["PARENTPATH"] = breadCrumb[len(breadCrumb)-2]
+		} else {
+			DATA["PARENTPATH"] = &models.PathAndVersion{
+				PATHFILEID: 0,
+				IDTYPE:     0,
+				PATHNAME:   "",
+			}
 		}
 		resp = map[string]interface{}{
 			"CODE": 200,
@@ -115,6 +121,12 @@ func (c *DownloadController) GetPathFileList() {
 		c.Data["BREADCRUMB"] = breadCrumb
 		if len(breadCrumb) > 1 {
 			c.Data["PARENTPATH"] = breadCrumb[len(breadCrumb)-2]
+		} else {
+			c.Data["PARENTPATH"] = &models.PathAndVersion{
+				PATHFILEID: 0,
+				IDTYPE:     0,
+				PATHNAME:   "",
+			}
 		}
 		c.TplName = "fileList.tpl"
 	} else {

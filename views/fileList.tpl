@@ -14,8 +14,11 @@
 </head>
 <body huaban_collector_injected="true">
 <header id="header">
-    <a href="#">
+    <a href="getFileList">
         <img id="logo" src="static/assets/img/logo.svg?v=2" alt="VisualSVN Server">
+    </a>
+    <a href="upload" style="float: right;margin-right: 2%;margin-top: 0.2%;font-size: 24px;">
+        upload
     </a>
 </header>
 <div id="content">

@@ -18,7 +18,11 @@ type UploadController struct {
 	beego.Controller
 }
 
-func (c *UploadController) Post() {
+func (c *UploadController) Upload() {
+	c.TplName = "upload.tpl"
+}
+
+func (c *UploadController) UploadFile() {
 	formFile, header, error := c.GetFile("file")
 	if error != nil {
 		log.Printf("文件获取失败：%s\n", error)
