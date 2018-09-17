@@ -14,5 +14,6 @@ func init() {
 }
 
 func main() {
+	beego.SetStaticPath("/myRepo", beego.AppConfig.String("uploadDir"))
 	beego.Run()
 }
