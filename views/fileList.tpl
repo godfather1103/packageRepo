@@ -6,7 +6,6 @@
     <link rel="stylesheet" type="text/css" href="static/assets/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="static/assets/css/hljs-vs.css">
     <link rel="stylesheet" type="text/css" href="static/assets/css/main.css?v=24">
-    <script src="/static/js/filelist.js"></script>
     <script src="static/assets/scripts/frameworks.js?v=4"></script>
     <script type="text/javascript" src="static/assets/scripts/main.js?v=19"></script>
     <script src="static/assets/scripts/diff.js"></script>
@@ -72,7 +71,11 @@
                     {{range .}}
                         <a class="dir table-row" href="getFileList?PathFileId={{.Id}}&IdType={{if eq .PathType 1}}0{{else}}1{{end}}">
                             <span class="table-cell icon">
-                              <i class="fa fa-folder"></i>
+                                {{if eq .PathType 2}}
+                                    <i class="fa fa-folder-open"></i>
+                                {{else}}
+                                    <i class="fa fa-folder"></i>
+                                {{end}}
                             </span>
                             <span class="table-cell name">{{.PathName}}</span>
                             <span class="table-cell size"></span>
@@ -89,7 +92,7 @@
                     {{range .}}
                     <a class="dir table-row" href="getFileList?PathFileId={{.Id}}&IdType=2">
                     <span class="table-cell icon">
-                      <i class="fa fa-folder"></i>
+                      <i class="fa fa-folder-o"></i>
                     </span>
                         <span class="table-cell name">{{.Version}}</span>
                         <span class="table-cell size"></span>
@@ -125,10 +128,10 @@
         </div>
     </div>
 </div>
-
+<script src="/static/js/utils.js"></script>
 <script>
     init({{str2html .MSG}})
 </script>
 <footer>
-    Powered by <a href="https://www.visualsvn.com/server/">VisualSVN Server</a>. © 2018 VisualSVN Software Ltd.
+    Powered by <a href="https://github.com/godfather1103/packageRepo">PackageRepo Server</a>. © 2018 FocusOps Software Ltd.
 </footer>

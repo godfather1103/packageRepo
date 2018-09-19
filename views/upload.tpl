@@ -6,10 +6,10 @@
     <link rel="stylesheet" type="text/css" href="static/assets/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="static/assets/css/hljs-vs.css">
     <link rel="stylesheet" type="text/css" href="static/assets/css/main.css?v=24">
-    <script src="/static/js/filelist.js"></script>
     <script src="static/assets/scripts/frameworks.js?v=4"></script>
     <script type="text/javascript" src="static/assets/scripts/main.js?v=19"></script>
     <script src="static/assets/scripts/diff.js"></script>
+    <script src="static/js/jquery.ajaxfileupload.js"></script>
     <title>Upload - Package Repo Server</title>
 </head>
 <body huaban_collector_injected="true">
@@ -57,7 +57,7 @@
                             </span>
                             <span class="table-cell name">GroupId</span>
                             <span class="table-cell size"></span>
-                            <span class="table-cell rev"><input type="text" name="groupId"></span>
+                            <span class="table-cell rev"><input type="text" id="groupId" name="groupId"></span>
                             <span class="table-cell author"></span>
                             <span class="table-cell date"></span>
                         </a>
@@ -66,7 +66,7 @@
                             </span>
                             <span class="table-cell name">ArtifactId</span>
                             <span class="table-cell size"></span>
-                            <span class="table-cell rev"><input type="text" name="artifactId"></span>
+                            <span class="table-cell rev"><input type="text" id="artifactId" name="artifactId"></span>
                             <span class="table-cell author"></span>
                             <span class="table-cell date"></span>
                         </a>
@@ -75,7 +75,7 @@
                             </span>
                             <span class="table-cell name">Version</span>
                             <span class="table-cell size"></span>
-                            <span class="table-cell rev"><input type="text" name="version"></span>
+                            <span class="table-cell rev"><input type="text" id="version" name="version"></span>
                             <span class="table-cell author"></span>
                             <span class="table-cell date"></span>
                         </a>
@@ -84,7 +84,7 @@
                             </span>
                             <span class="table-cell name">FileExt</span>
                             <span class="table-cell size"></span>
-                            <span class="table-cell rev"><input type="text" name="fileExt"></span>
+                            <span class="table-cell rev"><input type="text" id="fileExt" name="fileExt"></span>
                             <span class="table-cell author"></span>
                             <span class="table-cell date"></span>
                         </a>
@@ -93,7 +93,7 @@
                             </span>
                             <span class="table-cell name">File</span>
                             <span class="table-cell size"></span>
-                            <span class="table-cell rev"><input type="file" name="file"></span>
+                            <span class="table-cell rev"><input type="file" id="file" name="file"></span>
                             <span class="table-cell author"></span>
                             <span class="table-cell date"></span>
                         </a>
@@ -103,8 +103,8 @@
                             <span class="table-cell name">Oprea</span>
                             <span class="table-cell size"></span>
                             <span class="table-cell rev">
-                                <input type="reset" name="reset" value="reset">
-                                <input type="submit" name="submit" value="submit">
+                                <input type="reset" name="reset" id="reset" value="reset">
+                                <input type="button" name="upload" id="upload" value="upload">
                             </span>
                             <span class="table-cell author"></span>
                             <span class="table-cell date"></span>
@@ -116,6 +116,7 @@
         </div>
     </div>
 </div>
+<script src="static/js/utils.js"></script>
 <footer>
-    Powered by <a href="https://www.visualsvn.com/server/">VisualSVN Server</a>. © 2018 VisualSVN Software Ltd.
+    Powered by <a href="https://github.com/godfather1103/packageRepo">PackageRepo Server</a>. © 2018 FocusOps Software Ltd.
 </footer>
