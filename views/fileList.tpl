@@ -7,14 +7,12 @@
     <link rel="stylesheet" type="text/css" href="static/assets/css/hljs-vs.css">
     <link rel="stylesheet" type="text/css" href="static/assets/css/main.css?v=24">
     <script src="static/assets/scripts/frameworks.js?v=4"></script>
-    <script type="text/javascript" src="static/assets/scripts/main.js?v=19"></script>
-    <script src="static/assets/scripts/diff.js"></script>
     <title>{{ .TITLE}} - Package Repo Server</title>
 </head>
 <body huaban_collector_injected="true">
 <header id="header">
     <a href="getFileList">
-        <img id="logo" src="static/assets/img/logo.svg?v=2" alt="VisualSVN Server">
+        <img id="logo" src="static/img/logo.png?v=2" style="width: 45px;" alt="PackageRepo Server">
     </a>
     <a href="upload" style="float: right;margin-right: 2%;margin-top: 0.2%;font-size: 24px;">
         upload
@@ -36,7 +34,7 @@
                 <a href="getFileList" class="home navbar-item">
                     <span class="fa fa-home"></span>
                 </a>
-                <h1 class="navbar-item">
+                <h1 class="navbar-item">/
                     {{with .BREADCRUMB}}
                     {{range .}}
                     <a href="getFileList?PathFileId={{ .PATHFILEID}}&IdType={{ .IDTYPE}}">{{ .PATHNAME}}</a>/
