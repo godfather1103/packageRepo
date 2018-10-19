@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/godfather1103/packageRepo/models"
-	"github.com/godfather1103/packageRepo/util"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -144,7 +143,7 @@ func (c *DownloadController) GetFileStream() {
 			var artifactId = uploadFileInfo.ArtifactId
 			var version = uploadFileInfo.Version
 			var fileName = uploadFileInfo.FileName
-			var descRootDir = util.GetOrDefault("uploadDir", "/repo")
+			var descRootDir = beego.AppConfig.DefaultString("uploadDir", "/repo")
 			var descDir = descRootDir + "/" + strings.Replace(groupId, ".", "/", len(strings.Split(groupId, ".")))
 			descDir += "/" + strings.Replace(artifactId, ".", "/", len(strings.Split(artifactId, "."))) + "/" + version + "/"
 			var fileLocalDir = descDir + fileName

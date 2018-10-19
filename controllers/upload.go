@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/godfather1103/packageRepo/models"
-	"github.com/godfather1103/packageRepo/util"
+	"github.com/godfather1103/utils"
 	"io"
 	"log"
 	"os"
@@ -44,8 +44,8 @@ func (c *UploadController) UploadFile() {
 	var version = c.GetString("version")
 	uploadFileInfo.Version = version
 	var fileExt = c.GetString("fileExt")
-	if util.CheckStrIsEmpty(fileExt) {
-		fileExt = util.GetFileExt(header.Filename)
+	if utils.CheckStrIsEmpty(fileExt) {
+		fileExt = utils.GetFileExt(header.Filename)
 	}
 	uploadFileInfo.FileExt = fileExt
 	flag, info := models.CheckUploadFileInfo(uploadFileInfo)
@@ -62,10 +62,10 @@ func (c *UploadController) UploadFile() {
 		return
 	}
 
-	var descRootDir = util.GetOrDefault("uploadDir", "/repo")
+	var descRootDir = beego.AppConfig.DefaultString("uploadDir", "/repo")
 	var descDir = descRootDir + "/" + strings.Replace(groupId, ".", "/", len(strings.Split(groupId, ".")))
 	descDir += "/" + artifactId + "/" + version + "/"
-	error = util.PathMkdir(descDir)
+	error = utils.PathMkdir(descDir)
 	if error != nil {
 		log.Printf("创建路径失败：%s\n", error)
 		resp := map[string]interface{}{

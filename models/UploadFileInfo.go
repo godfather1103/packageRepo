@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
-	"github.com/godfather1103/packageRepo/util"
+	"github.com/godfather1103/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -141,13 +141,13 @@ func FindUploadFileInfoByGAV(groupId string, artifactId string, version string) 
 }
 
 func CheckUploadFileInfo(fileInfo *UploadFileInfo) (bool, string) {
-	if util.CheckStrIsEmpty(fileInfo.GroupId) {
+	if utils.CheckStrIsEmpty(fileInfo.GroupId) {
 		return false, "GroupId字段不能为空！"
-	} else if util.CheckStrIsEmpty(fileInfo.ArtifactId) {
+	} else if utils.CheckStrIsEmpty(fileInfo.ArtifactId) {
 		return false, "ArtifactId字段不能为空！"
-	} else if util.CheckStrIsEmpty(fileInfo.Version) {
+	} else if utils.CheckStrIsEmpty(fileInfo.Version) {
 		return false, "Version字段不能为空！"
-	} else if util.CheckStrIsEmpty(fileInfo.FileExt) {
+	} else if utils.CheckStrIsEmpty(fileInfo.FileExt) {
 		return false, "无法自动获取文件后缀名，请手动通过FileExt传递！"
 	} else {
 		return true, ""
