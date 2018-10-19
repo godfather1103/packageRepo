@@ -1,0 +1,41 @@
+IDI_ICON1   ICON    DISCARDABLE  "ico.ico"  //设置程序图标
+ 
+#if defined(UNDER_CE)
+#include <winbase.h>
+#else
+#include <winver.h>
+ 
+#endif
+ 
+VS_VERSION_INFO VERSIONINFO
+    FILEVERSION 1,0
+    PRODUCTVERSION 1,0
+    FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+    FILEFLAGS VS_FF_DEBUG
+#else
+    FILEFLAGS 0x0L
+#endif
+    FILEOS VOS__WINDOWS32
+    FILETYPE VFT_DLL
+    FILESUBTYPE 0x0L
+    BEGIN
+        BLOCK "StringFileInfo"
+        BEGIN
+            BLOCK "080404b0"
+            BEGIN
+                VALUE "CompanyName",      "Jack Chu"                  //公司名称
+                VALUE "FileDescription",  "简单的包管理工具"                  //文件说明
+                VALUE "InternalName",     "PackageRepo Server"                  //内部文件名
+                VALUE "ProductName",      "Tank"                  //产品名称
+                VALUE "OriginalFilename", "Tank.exe"                    //原始文件名
+                VALUE "LegalCopyright",   "Copyright Jack Chu (C) 2018"        //版权
+                VALUE "ProductVersion",   "v1.0"                       //产品版本号
+                VALUE "FileVersion",      "v1.0"                       //文件版本
+            END
+        END
+        BLOCK "VarFileInfo"
+        BEGIN
+            VALUE "Translation", 0x804, 1200
+        END
+    END
