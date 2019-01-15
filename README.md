@@ -6,7 +6,7 @@
 
 2、进入Release目录中，修改conf目录下的app.conf文件，填写保存路径和MySQL数据库信息 
 
-3、根据操作系统、位数，选择运行packageRepo-xxx(.exe)等可执行文件即可
+3、根据操作系统、位数，选择运行packageRepo-xxx(.exe)等可执行文件即可（Linux等操作系统可能需要手动赋予可执行权限）
 
 4、打开浏览器访问http://ip:port就可使用
 
