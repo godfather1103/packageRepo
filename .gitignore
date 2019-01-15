@@ -71,7 +71,8 @@ fabric.properties
 *.dll
 *.so
 *.dylib
-
+!packageRepo-win32.exe
+!packageRepo-win64.exe
 # Test binary, build with `go test -c`
 *.test
 
